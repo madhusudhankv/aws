@@ -1,0 +1,123 @@
+Install - AWS CLI tool for windows or linux
+
+start with aws configure and enter key
+
+VPC
+-------------------------------------------------
+aws ec2 create-vpc --cidr-block 10.0.0.0/16
+
+-> Make a note of - VPC - ID -vpc-0a9bb13dd58d31c22 
+
+--------------------------------------------------
+Replace VPC with orginal
+
+aws ec2 create-tags --resources vpc-Number/ID --tags Key=Name,Value=DemoVPC
+
+aws ec2 create-tags --resources vpc-0a9bb13dd58d31c22  --tags Key=Name,Value=DemoVPC
+
+----------------------------------------------------
+
+Create public subnet
+
+aws ec2 create-subnet --vpc-id vpc-0a9bb13dd58d31c22  --cidr-block 10.0.1.0/24
+
+make a note of subnet - subnet-028c5ea95ae8e33c0
+
+-------------------------------------------------------
+Replace subnet with orginal
+
+aws ec2 create-tags --resources subnet-028c5ea95ae8e33c0 --tags Key=Name,Value=CLI-Public-Subnet
+
+Now, to enable internet for VPC, we need to creat and attach an internet gateway
+----------------------------------------------------------
+
+aws ec2 create-internet-gateway
+
+Make a note of internet gateway id 
+
+igw-01313aef46c9d9602
+
+-------------------------------------------------------------
+aws ec2 attach-internet-gateway \ 
+--vpc-id vpc-0a9bb13dd58d31c22 \ 
+--internet-gateway-id igw-01313aef46c9d9602
+
+aws ec2 attach-internet-gateway --internet-gateway-id igw-01313aef46c9d9602 --vpc-id vpc-0a9bb13dd58d31c22
+
+Create a route table
+
+aws ec2 create-route-table --vpc-id vpc-0a9bb13dd58d31c22
+
+-------------------------------------------------------
+
+Route table id note -
+
+rtb-03c2d4a9b2512a5fa
+
+_____________________________________________________________
+
+aws ec2 create-route --route-table-id rtb-03c2d4a9b2512a5fa --destination-cidr-block 0.0.0.0/0  --gateway-id igw-01313aef46c9d9602
+
+--------------------------------------------
+aws ec2 associate-route-table --route-table-id rtb-03c2d4a9b2512a5fa --subnet-id subnet-028c5ea95ae8e33c0
+
+____________________________________________
+
+
+Make a note of group id --sg-0fe620703572fc61c
+
+aws ec2 create-security-group --group-name application-sg \
+--description "My app secuirty group" \
+--vpc-id vpc-0a9bb13dd58d31c22
+
+_______________________________________________________________
+
+aws ec2 authorize-security-group-ingress \
+--group-id sg-0fe620703572fc61c \
+--protocol tcp \
+--port 80 \
+--cidr 0.0.0.0/0 
+
+
+aws ec2 authorize-security-group-ingress \
+--group-id sg-0fe620703572fc61c \
+--protocol tcp \
+--port 22 \
+--cidr 0.0.0.0/0 
+
+_____________________________________________
+
+aws configure get region
+
+
+
+___________________________________________________
+
+aws ec2 create-key-pair --region us-east-1 --key-name awsclikey --query "KeyMaterial"
+
+_________________________________________________________________
+
+aws ec2 run-instances --image-id ami-02396cdd13e9a1257 --count 1 --instance-type t2.micro --key-name awsclikey --security-group-ids sg-0fe620703572fc61c --subnet-id subnet-028c5ea95ae8e33c0 --region us-east-1
+
+
+________________________________________________________________________
+
+To check status of ec2 instance 
+
+aws ec2 describe-instance-status
+
+------------------------------------------
+
+aws ec2 terminate-instances --instance-id i-04d2099ece5f4b756 --region us-east-1 
+
+-----------------------------------------------------------------------
+aws ec2 delete-security-group --group-id sg-0fe620703572fc61c --region us-east-1
+
+
+
+
+
+
+
+
+
